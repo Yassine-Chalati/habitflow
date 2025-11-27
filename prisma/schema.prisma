@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  name             String?
+  avatarUrl        String?
+  subscriptionPlan String    @default("free")
+  subscriptionStatus String  @default("active")
+  theme            String    @default("auto")
+  language         String    @default("en")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  habits    Habit[]
+  habitLogs HabitLog[]
+
+  @@map("users")
+}
+
+model Habit {
+  id            String    @id @default(uuid())
+  userId        String
+  name          String
+  description   String?
+  category      String    @default("Personal")
+  frequency     String    @default("daily")
+  frequencyDays Int[]
+  startDate     DateTime  @default(now())
+  endDate       DateTime?
+  color         String    @default("#6366f1")
+  icon          String    @default("target")
+  priority      String    @default("Medium")
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  successRate   Float     @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs HabitLog[]
+
+  @@map("habits")
+}
+
+model HabitLog {
+  id          String    @id @default(uuid())
+  habitId     String
+  userId      String
+  date        DateTime
+  status      String    @default("pending")
+  note        String?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@map("habit_logs")
+}
+
+
+
